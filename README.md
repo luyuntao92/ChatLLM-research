@@ -14,7 +14,7 @@
 | 模型名称           | 基座模型                                                     | 能力说明                                  | 优缺点                                                       | 训练预期需要资源                     | 微调数据集                                                   | 推理需要资源                      | 论文中的评估结果                                             | github                                                       | 论文                                                         | 训练中值得关注                                               |
 | :----------------- | :----------------------------------------------------------- | :---------------------------------------- | :----------------------------------------------------------- | :----------------------------------- | :----------------------------------------------------------- | :-------------------------------- | :----------------------------------------------------------- | :----------------------------------------------------------- | :----------------------------------------------------------- | :----------------------------------------------------------- |
 | Guanaco-65B        | LLaMA                                                        | 65B达到ChatGPT的99%表现（人工和GPT4评估） |                                                              | 24hours fintune 65B on a 48GB GPU    | 论文对比8个数据集：OASST1，HH-RLHF ，Alpaca，self-instruct， unnatural instructions，FLAN v2，Chip2, Longform最后选择OASST1中top reply的9k条数据微调得到Guanaco |                                   | ![png](./png/image2023-6-6_11-2-39.png)除13B尺寸上的Vicuna表现更好外，Guanaco表现最优 | [相关代码](https://github.com/artidoro/qlora)                | [相关论文1](https://arxiv.org/abs/2305.14314)                | Train on target优于Train on source and target                |
-| Vicuna-13B         | LLaMA                                                        | ChatGPT的92%（GPT4评估）                  |                                                              | FSDP on 8 A100 GPUs in one day       | 从https://sharegpt.com/清洗出70K user-shared ChatGPT conversations（数据集ShareGPT，[数据清洗代码](https://github.com/lm-sys/FastChat/blob/main/docs/commands/data_cleaning.md)） | 28GB of GPU memory for Vicuna-13B | ![png](png/image2023-6-6_13-57-8.png)用80条 vicuna test评估 | [相关代码](https://github.com/lm-sys/FastChat)\|[在线demo](https://chat.lmsys.org/) | [官方博客](https://lmsys.org/blog/2023-03-30-vicuna/)        | 多轮对话只计算模型输出的loss                                 |
+| Vicuna-13B         | LLaMA                                                        | ChatGPT的92%（GPT4评估）                  |                                                              | FSDP on 8 A100 GPUs in one day       | 从https://sharegpt.com/清洗出70K user-shared ChatGPT conversations（数据集ShareGPT，[数据清洗代码](https://github.com/lm-sys/FastChat/blob/main/docs/commands/data_cleaning.md)） | 28GB of GPU memory for Vicuna-13B | ![png](./png/image2023-6-6_13-57-8.png)用80条 vicuna test评估 | [相关代码](https://github.com/lm-sys/FastChat)\|[在线demo](https://chat.lmsys.org/) | [官方博客](https://lmsys.org/blog/2023-03-30-vicuna/)        | 多轮对话只计算模型输出的loss                                 |
 | Alpaca             | LLaMA                                                        | 约ChatGPT的70%                            | chat类模型中比较早期的做法                                   | 在4 A100 80G GPUs in FSDP mode微调7B | Self-instruct from davinci-003 API (52k samples)             |                                   |                                                              | [相关代码](https://github.com/tatsu-lab/stanford_alpaca)     | [官方博客](https://crfm.stanford.edu/2023/03/13/alpaca.html) |                                                              |
 | LLaMA_GPT4-7B      | LLaMA                                                        | 好于Alpaca-13B、逊于Vicuna-13B            | 进行中文微调：Alpaca的52k instructions 翻译成中文后用GPT-4生成answer | 16*V100                              | GPT-4根据Alpaca的52K instructions 生成新的answer             |                                   | ![png](./png/image2023-6-6_16-24-18.png)中文表现![png](./png/image2023-6-6_16-29-11.png) | 同Alpaca代码                                                 | [相关论文1](https://arxiv.org/abs/2304.03277)                |                                                              |
 | Koala | LLaMA |      |      |      | 两类数据：1、ChatGPT Distillation Data:SharGPT中删除非英文的，保留30k条；Human ChatGPT Comparison Corpus（HC3）2、Open Source Data：Open Instruction Generalist（OIG）、Alpaca、HH-RLHF、OpenAI WebGPT、OpenAI summarization |      | ![png](./png/image2023-6-9_16-55-36.png) | [相关代码](https://github.com/young-geng/EasyLM)[数据处理代码](https://github.com/young-geng/koala_data_pipeline) | [官方博客](https://bair.berkeley.edu/blog/2023/04/03/koala/) | 论文用ChatGPT Distillation Data微调了Koala-Distill，用所有数据微调了Koala-All，结果显示在两个验证数据集上，Koala-Distill结果都好于Koala-All（虽然差距不明显） |
@@ -64,11 +64,15 @@ LLaMA的词表中只有几百个中文token
 
 **数据质量**
 
-国外基于LLaMA模型的一些小总结
-
 ChatGPT>Vicuna-13B>LLaMA_GPT4>Alpaca：其中最大的差异就是微调数据集的质量，Vicuna-13B使用ShareGPT，用户分享的和ChatGPT聊天的数据，Alpaca使用52k ChatGPT self instruct得到的数据，而LLaMA_GPT4使用52k GPT-4 self instruct得到的数据。得出结论，微调数据集中有人参与的由于GPT-4，优于ChatGPT。
 
 所以在后续Chat模型中，不少模型使用了有人工参与介入的数据集，主要有：HH-RLHF、OASST1、databricks-dolly-15k、ShareGPT、HC3、openai/summarize-from-feedback等。
+
+然而，在Koala模型实验中，他们训练了两个模型：Koala-Distill和Koala-All，其中Koala-Distill只用了ChatGPT相关数据集，反而在两个验证数据集上优于Koala-All（提升不多）。推测可能得原因，ChatGPT生成的数据更符合验证集数据分布，另外有些开源NLP数据集虽然也可以转化成QA进行微调，可能和用户真正聊天的分布有差异。
+
+经过简短的调研，目前开源chat模型在sft微调阶段使用的数据集有不少重合的数据，可能仅靠sft数据，目前这些模型已经到达天花板了？但是在另外一些方面，不少模型也做了尝试，比如QLoRA可以用40G显卡微调65B模型，这样可以通过模型尺寸来突破上限。还比如SelFee在微调数据中引入self-feedback等机制。
+
+
 
 **CoT、self-feedback、Reason-Act、autoGPT的加入**
 SelFee使用Alpaca 52k instructions让ChatGPT生成带自我反馈的语料进行微调，并在推理阶段同样引入反馈链条，取得了不错的效果。![反馈链](./png/image-2023-06-09-141751.png)
@@ -110,12 +114,12 @@ SelFee使用Alpaca 52k instructions让ChatGPT生成带自我反馈的语料进�
 
 
 ### 2.3 信息抽取数据集
-| 数据集                 | 数据集简介                        | 原始来源                                                     | 保存地址 |
-| :--------------------- | :-------------------------------- | :----------------------------------------------------------- | :------- |
-| BAAI-FewRel            | 英文信息抽取数据                  | [下载地址](https://data.baai.ac.cn/details/FewRel)           |          |
-| IE INSTRUCTIONS        | 英文信息抽取数据，训练instructUIE | [下载地址](https://drive.google.com/file/d/1T-5IbocGka35I7X3CE6yKe5N_Xg2lVKT/view) |          |
-| DuIE                   | 中文                              | [下载地址](https://hyper.ai/datasets/16618)                  |          |
-| 金融信息负面及主体判定 | 中文                              | [下载地址](https://www.datafountain.cn/competitions/353/datasets) |          |
-|                        |                                   |                                                              |          |
-|                        |                                   |                                                              |          |
-|                        |                                   |                                                              |          |
+| 数据集                 | 数据集简介                        | 原始来源                                                     |
+| :--------------------- | :-------------------------------- | :----------------------------------------------------------- |
+| BAAI-FewRel            | 英文信息抽取数据                  | [下载地址](https://data.baai.ac.cn/details/FewRel)           |
+| IE INSTRUCTIONS        | 英文信息抽取数据，训练instructUIE | [下载地址](https://drive.google.com/file/d/1T-5IbocGka35I7X3CE6yKe5N_Xg2lVKT/view) |
+| DuIE                   | 中文                              | [下载地址](https://hyper.ai/datasets/16618)                  |
+| 金融信息负面及主体判定 | 中文                              | [下载地址](https://www.datafountain.cn/competitions/353/datasets) |
+|                        |                                   |                                                              |
+|                        |                                   |                                                              |
+|                        |                                   |                                                              |
