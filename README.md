@@ -69,8 +69,8 @@ ChatGPT>Vicuna-13B>LLaMA_GPT4>Alpaca：其中最大的差异就是微调数据�
 
 所以在后续Chat模型中，不少模型使用了有人工参与介入的数据集，主要有：HH-RLHF、OASST1、databricks-dolly-15k、ShareGPT、HC3、openai/summarize-from-feedback等。
 
-
-
+**CoT、self-feedback、Reason-Act、autoGPT的加入**
+SelFee使用Alpaca 52k instructions让ChatGPT生成带自我反馈的语料进行微调，并在推理阶段同样引入反馈链条，取得了不错的效果
 
 
 
