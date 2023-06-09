@@ -1,1 +1,94 @@
 # ChatLLM-research
+
+## 1、调研情况
+
+### 1.1 模型情况梳理
+| 模型名称           | 基座模型                                                     | 能力说明                                  | 优缺点                                                       | UIE评测结果 | 训练预期需要资源                     | 微调数据集                                                   | 推理需要资源                      | 论文中的评估结果                                             | github                                                       | 论文                                                         | 训练中值得关注                                               |
+| :----------------- | :----------------------------------------------------------- | :---------------------------------------- | :----------------------------------------------------------- | :---------- | :----------------------------------- | :----------------------------------------------------------- | :-------------------------------- | :----------------------------------------------------------- | :----------------------------------------------------------- | :----------------------------------------------------------- | :----------------------------------------------------------- |
+| Guanaco-65B        | LLaMA                                                        | 65B达到ChatGPT的99%表现（人工和GPT4评估） |                                                              |             | 24hours fintune 65B on a 48GB GPU    | 论文对比8个数据集：OASST1，HH-RLHF ，Alpaca，self-instruct， unnatural instructions，FLAN v2，Chip2, Longform最后选择OASST1中top reply的9k条数据微调得到Guanaco |                                   | ![png](./png/image2023-6-6_11-2-39.png)除13B的Vicuna表现最好外，Guanaco表现最优 | [相关代码](https://github.com/artidoro/qlora)                | [相关论文1](https://arxiv.org/abs/2305.14314)                | Train on target优于Train on source and target                |
+| Vicuna-13B         | LLaMA                                                        | ChatGPT的92%（GPT4评估）                  |                                                              |             | FSDP on 8 A100 GPUs in one day       | 从https://sharegpt.com/清洗出70K user-shared ChatGPT conversations（数据集ShareGPT，[数据清洗代码](https://github.com/lm-sys/FastChat/blob/main/docs/commands/data_cleaning.md)） | 28GB of GPU memory for Vicuna-13B | ![png](./png/image2023-6-6_13-57-8.png)80 vicuna test评估    | [相关代码](https://github.com/lm-sys/FastChat)\|[在线demo](https://chat.lmsys.org/) | [官方博客](https://lmsys.org/blog/2023-03-30-vicuna/)        | 多轮对话只计算模型输出的loss                                 |
+| Alpaca             | LLaMA                                                        | 约ChatGPT的70%                            | chat类模型中比较早期的做法                                   |             | 在4 A100 80G GPUs in FSDP mode微调7B | Self-instruct from davinci-003 API (52K samples)             |                                   |                                                              | [相关代码](https://github.com/tatsu-lab/stanford_alpaca)     | [官方博客](https://crfm.stanford.edu/2023/03/13/alpaca.html) |                                                              |
+| LLaMA_GPT4-7B      | LLaMA                                                        | 好于Alpaca-13B、逊于Vicuna-13B            | 进行中文微调：Alpaca的52k instructions 翻译成中文后用GPT-4生成answer |             | 16*V100                              | GPT-4根据Alpaca的52K instructions 生成新的answer             |                                   | ![png](./png/image2023-6-6_16-24-18.png)中文表现![png](./png/image2023-6-6_16-29-11.png) | 同Alpaca代码                                                 | [相关论文1](https://arxiv.org/abs/2304.03277)                |                                                              |
+| SelFee             | LLaMA                                                        | SelFee-13B约ChatGPT的103%                 | 自我反馈提升回答效果                                         |             |                                      | 178k 数据包含自我反馈和修订数据：1、Alpaca 52k（根据instructions让ChatGPT生成feedback数据、未开源）2、Math collection 26k3、Code collection 30k4、FLAN collection 16k5、ShareGPT 55k（去除非英语） |                                   | ![png] image2023-6-7_10-2-36.png](http://wiki.chinascope.net/download/attachments/57969351/image2023-6-7_10-2-36.png?version=1&modificationDate=1686103357000&api=v2)80 vicuna test评估 | 同Alpaca代码\|[在线demo](https://kaistai.github.io/SelFee/demo) | [官方博客](https://kaistai.github.io/SelFee/)                | 多种训练数据、自我反馈链的模式                               |
+| BELLE              | bloom、LLaMA                                                 | 约ChatGPT的92%（排除code和math）          | LLaMA基座模型对中文进行二次预训练微调数据集几乎全部为中文    |             | 8卡A100 80G                          | 200万中文+Alpaca的5万英文（均由ChatGPT产生）BELLE-13B基于LLaMA，训练数据达400万 |                                   | ![png](./png/image2023-6-7_10-13-57.png)LLaMA-EXT做了中文词表扩展并在3.5B中文token上二次预训练[测试集下载地址：1k中文评估测试集，可用ChatGPT自动打分](https://github.com/LianjiaTech/BELLE/tree/main/eval) | [相关代码](https://github.com/LianjiaTech/BELLE)             | [相关论文1](https://arxiv.org/abs/2304.07854)[相关论文2](https://arxiv.org/abs/2304.08109) | ![png](./png/image2023-6-6_17-22-39.png)对比不容模型尺寸、全量微调、LoRA、不同微调数据量的效果结论：全量FT>LoRA；微调数据越多越好；模型尺寸越大越好 |
+| ChatGLM-6B         | GLM130B                                                      |                                           | 基座模型在中英（对半）语料上训练                             |             |                                      | 1T tokens的中英双语训练                                      |                                   | [SuperCLUE琅琊榜](https://www.superclueai.com/)![png](./png/image2023-6-7_17-11-45.png)参与用户与两个匿名模型同时聊天，并投票哪个更好，排名持续更新中 | [相关代码](https://github.com/THUDM/ChatGLM-6B)              | [GLM-130B相关论文](https://arxiv.org/abs/2210.02414)         |                                                              |
+| Linly-ChatFlow     | Linly OpenLLaMA-13B（从头开始预训练，100G中英语料，Apache 2.0开源） |                                           | 另有基座模型Linly-Chinese-LLaMA-33B（最大的开源中文LLaMA模型，二次预训练30G，无中文词表扩充：原始700个汉字） |             |                                      | 1.BELLE: 150万数据，175个指令seed 2.pCLUE: 120万训练数据，73个Prompt 3.CSL: 40万中文论文元数据，26个Prompt 5.GuanacoDataset: 多语言指令数据集 6.Chain-of-Thought: 中英文思维链数据 7.news_commentary: 中英文翻译数据 8.firefly: 23个中文NLP任务集合 |                                   |                                                              | [相关代码](https://github.com/CVI-SZU/Linly)\|[在线demo](https://huggingface.co/spaces/Linly-AI/Linly-ChatFlow) |                                                              |                                                              |
+| Chinese-Alpaca-13B | Chinese-LLaMA（[LoRA权重地址](https://huggingface.co/ziqingyang/chinese-llama-plus-lora-13b)） |                                           | LLaMA在120G中文语料上的二次预训练、扩充中文词表（LoRA）      |             |                                      | 基于LoRA：基座模型训练120G通用中文语料Chinese-Alpaca在4.3M中文指令上微调 |                                   |                                                              | [相关代码](https://github.com/ymcui/Chinese-LLaMA-Alpaca/tree/main) | [相关论文](https://arxiv.org/abs/2304.08177)                 |                                                              |
+| Firefly流萤        | bloom                                                        |                                           | 裁切词表大小（适应中文）                                     |             |                                      |                                                              |                                   |                                                              | [相关代码](https://github.com/yangjianxin1/Firefly)          |                                                              |                                                              |
+| InstructUIE        | Flan T5                                                      |                                           | 信息抽取任务+中模型                                          |             |                                      |                                                              |                                   |                                                              | [相关代码](https://github.com/BeyonderXX/InstructUIE)        | [相关论文](https://arxiv.org/abs/2304.08085)                 |                                                              |
+|                    |                                                              |                                           |                                                              |             |                                      |                                                              |                                   |                                                              |                                                              |                                                              |                                                              |
+补充说明：
+
+LLaMA的词表中只有几百个中文token
+
+Falcon的词表中没有中文token
+
+
+
+其他国产开源模型：
+
+- CPM-Bee-10B：百亿参数、中英双语基座模型
+- Chatyuan-large-v2
+
+### 1.2 总结
+#### 基座模型
++ LLaMA
+
+包含65B、33B、13B、7B等尺寸
+
+缺少中文token，解决措施：扩充词表、二次预训练，相关模型：Chinese-Alpaca-13B（LoRA）、Linly OpenLLaMA-13B（从头训练）
+其他BELLE对LLaMA做了词表扩充和二次预训练，但是并没有开源调整后的基座模型
+智源Aquila在中英语料上进行从头训练，同样只开源了其chat模型AquilaChat-7B，并未开源基座模型
+
++ GLM
+
+包含130B（[申请下载链接](https://github.com/THUDM/GLM-130B)）、10B等尺寸
+
+在中文语料上预训练，缺少中间尺寸的开源模型
+
++ bloom和bloomz
+
+多语言模型，词表太大，需要做裁切（Firefly项目有进行裁切）
+
+#### 微调数据和模型效果
+
+
+## 2、数据集收集
+
+### 2.1 微调数据
+
+| 数据集                                 | 数据集用途                         | 原始来源                                                     | 保存地址 | 其他补充说明                                                 |
+| :------------------------------------- | :--------------------------------- | :----------------------------------------------------------- | :------- | :----------------------------------------------------------- |
+| OASST1                                 | 微调Guanaco                        | [下载地址](https://huggingface.co/datasets/OpenAssistant/oasst1) |          | 10万条对话树、35种语言、人工生成、人工标注（1万多志愿者）    |
+| HH-RLHF                                | Guanaco、RedPajama                 | [下载地址](https://huggingface.co/datasets/Anthropic/hh-rlhf) |          | Anthropic的RLHF数据                                          |
+| databricks-dolly-15k                   | Dolly2、RedPajama                  | [下载地址](https://huggingface.co/datasets/databricks/databricks-dolly-15k) |          |                                                              |
+| ShareGPT                               | 微调Vicuna、SelFee                 | 数据关闭开源（[用户提前下载后分享1](https://huggingface.co/datasets/RyokoAI/ShareGPT52K)）（[用户分享下载2](https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered)） |          | 个人分享和ChatGPT的对话                                      |
+| Alpaca                                 | 微调Alpaca等多模型                 | [下载地址](https://github.com/tatsu-lab/stanford_alpaca/blob/main/alpaca_data.json) |          | 52K self instruct数据                                        |
+| Alpaca-3.5-zh                          | 中文Alpaca                         | [项目地址](https://github.com/ymcui/Chinese-LLaMA-Alpaca/tree/main) |          |                                                              |
+| Alpaca_gpt4_data                       | 微调LLaMA_GPT4                     | [下载地址](https://github.com/Instruction-Tuning-with-GPT-4/GPT-4-LLM/tree/main/data) |          | Alpaca的52K instructions用GPT4生成answer（中英两版），另外包含GPT4对3个模型生成答案的排序打分数据，可以训练reward model |
+| AQuA                                   | 微调Selfee                         | [下载地址](https://github.com/deepmind/AQuA)                 |          | 数学数据集                                                   |
+| Flan collection                        | Flan-PaLM、Selfee                  | [下载地址](https://github.com/google-research/FLAN/tree/main/flan/v2) |          | 包含5个数据集                                                |
+| Linly instructions                     | 微调Linly-ChatFlow                 | [下载地址](https://github.com/CVI-SZU/Linly/tree/main/instructions) |          | 1.BELLE: 150万数据，175个指令seed 2.pCLUE: 120万训练数据，73个Prompt 3.CSL: 40万中文论文元数据，26个Prompt 5.GuanacoDataset: 多语言指令数据集 6.Chain-of-Thought: 中英文思维链数据 7.news_commentary: 中英文翻译数据 8.firefly: 23个中文NLP任务集合 |
+| BELLE 10M                              | 微调BELLE、Linly                   | [下载地址](https://github.com/LianjiaTech/BELLE/tree/main/data/10M#multiturn-chat) | 未下载   | 持续开放的由ChatGPT产生的数据集                              |
+| Firefly_train_1.1M                     | 微调Firefly                        | [下载地址](https://huggingface.co/datasets/YeungNLP/firefly-train-1.1M) |          | 收集23个常见中文数据集，对于每个任务，由人工书写若干种指令模板，保证数据的高质量和丰富度，数据量为115万 |
+| awesome-open-instruct-data-for-chinese | 中文指令金条数据集合集             | [下载地址](https://github.com/LianjiaTech/BELLE/blob/main/data/awesome_open_instruct_data_for_chinese.md) |          | 包含多个中文指令数据集                                       |
+| OpenLLaMA预训练语料                    | 中英预训练语料100GB                | [下载地址](https://github.com/CVI-SZU/Linly/wiki/Linly-OpenLLaMA) | 未下载   | 20G中文语料、10G平行语料、70G英文语料                        |
+| RedPajama-Data                         | 复刻LLaMA预训练语料（1.4T tokens） | [下载地址](https://github.com/togethercomputer/RedPajama-Data) | 未下载   | ![png](./png/image2023-6-8_9-18-12.png) |
+| BAAI-OL-CC                             |                                    | [下载地址](https://data.baai.ac.cn/details/OL-CC)            |          | 通过众包，人工标注的10k条对话数据                            |
+| openai/summarize-from-feedback         | 微调koala                          | [下载地址](https://github.com/openai/summarize-from-feedback/tree/master) |          | 英文90K                                                      |
+| HC3                                    | 微调koala                          | [下载地址](https://github.com/Hello-SimpleAI/chatgpt-comparison-detection) |          | 中英文，同一个问题，对比human vs chatgpt的答案               |
+|                                        |                                    |                                                              |          |                                                              |
+|                                        |                                    |                                                              |          |                                                              |
+### 2.2 预训练数据
+
+
+### 2.3 信息抽取数据集
+| 数据集                 | 数据集简介                        | 原始来源                                                     | 保存地址 |
+| :--------------------- | :-------------------------------- | :----------------------------------------------------------- | :------- |
+| BAAI-FewRel            | 英文信息抽取数据                  | [下载地址](https://data.baai.ac.cn/details/FewRel)           |          |
+| IE INSTRUCTIONS        | 英文信息抽取数据，训练instructUIE | [下载地址](https://drive.google.com/file/d/1T-5IbocGka35I7X3CE6yKe5N_Xg2lVKT/view) |          |
+| DuIE                   | 中文                              | [下载地址](https://hyper.ai/datasets/16618)                  |          |
+| 金融信息负面及主体判定 | 中文                              | [下载地址](https://www.datafountain.cn/competitions/353/datasets) |          |
+|                        |                                   |                                                              |          |
+|                        |                                   |                                                              |          |
+|                        |                                   |                                                              |          |
