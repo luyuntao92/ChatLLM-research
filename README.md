@@ -6,11 +6,15 @@
 
 主要针对近期开源Chat类模型进行数据集收集、模型效果调研、论文实现初探。
 
-两个模型排行榜：
+几个模型排行榜：
 
-国内：[SuperCLUE琅琊榜](https://www.superclueai.com/)
++ 国内：[SuperCLUE琅琊榜](https://www.superclueai.com/)
 
-国外：[UC伯克利LLM排行榜](https://chat.lmsys.org/)
++ 国外：[UC伯克利LLM排行榜](https://chat.lmsys.org/)
+
+以上两个排行榜通过志愿者同时对两个匿名模型聊天，并投票产生（模型两两PK）
+
++ 斯坦福排行榜AlpacaEval：[AlpaceEval](https://tatsu-lab.github.io/alpaca_eval)
 
 
 ### 1.1 模型情况梳理
@@ -35,16 +39,7 @@
 | 模型名称     | 基座模型 | 邻域实现方法                                                 | 相关论文                                     | 相关代码                                                |
 | :----------- | :------- | :----------------------------------------------------------- | :------------------------------------------- | :------------------------------------------------------ |
 | Lawyer LLaMA | LLaMA    | 1、通用语料预训练LLaMA，增强中文能力<br>2、中文法律语料continual training<br>3、指令微调：通用指令（Alpaca-GPT4，中英文）；法律指令微调（ChatGPT生成法律考题、咨询等答案、检索法条后让ChatGPT生成答案）<br> | [相关论文](https://arxiv.org/abs/2305.15062) | [github地址](https://github.com/AndrewZhe/lawyer-llama) |
-
-
-
-
-补充说明：
-
-LLaMA的词表中只有几百个中文token
-
-阿联酋有一个Falcon-40B基座模型，但是词表中没有中文token
-
+| Bloomberg GPT |        |    |
 
 
 其他国产开源模型：
@@ -62,12 +57,11 @@ LLaMA的词表中只有几百个中文token
 
 + a) 扩充词表、二次预训练，相关模型：Chinese-Alpaca-13B（LoRA）。其他BELLE对LLaMA做了词表扩充和二次预训练，但是并没有开源调整后的基座模型；
 
-+ b) 从头训练，相关模型：Linly OpenLLaMA-13B（已开源）、智源Aquila在中英语料上进行从头训练，目前开源基座模型7B，将开源33B；
-
++ b) 从头训练，相关模型：[Linly OpenLLaMA-13B(预训练30亿tokens)](https://github.com/CVI-SZU/Linly)（已开源）、智源[Aquila(预训练万亿tokens)](https://github.com/FlagAI-Open/FlagAI/tree/master/examples/Aquila)在中英语料上进行从头训练，目前开源基座模型7B，将开源33B、[baichuan-7B(预训练1.2万亿tokens)](https://github.com/baichuan-inc/baichuan-7B)在C-Eval和MMLU上都取得同尺寸最好的效果
 
 ##### GLM
 
-包含130B（[申请下载链接](https://github.com/THUDM/GLM-130B)）、10B等尺寸
+包含130B（[申请下载链接](https://github.com/THUDM/GLM-130B)）、10B等尺寸（10B和130B应该是两个项目，10B是在智源WUDAO数据集上进行的预训练，两模型并非同一个模型的不同尺寸）
 
 在中文语料上预训练，缺少中间尺寸的开源模型
 
