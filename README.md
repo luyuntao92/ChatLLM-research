@@ -36,8 +36,9 @@
 SuperCLUE琅琊榜和UC伯克利LLM排行榜包含模型对战排名，即通过志愿者同时对两个匿名模型聊天，并投票产生（模型两两PK）
 
 ### 1.1 模型情况梳理
-| 模型名称 | 基座模型 | 能力说明 | 优缺点 | 训练预期需要资源 | 微调数据集| 论文中的评估结果 | github | 论文 | 训练中值得关注 |
-| :----------------- | :------------------------------- | :-------------------------------- | :-------------------------------- | :-------------------------------- | :-------------------------------- | :-------------------------------- | :-------------------------------- | :-------------------------------- | :-------------------------------- |
+
+| 模型名称 | 基座模型 | 能力说明 | 优缺点 | 训练预期需要资源 | 微调数据集 | 论文中的评估结果 | github | 论文 | 训练中值得关注 |
+| :------------- | :------------- | :-------------| :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- |
 | Guanaco-65B   | LLaMA  | 65B能达到ChatGPT的99%表现（人工和GPT4评估） |             | 24hours fintune 65B on a 48GB GPU    | 论文对比了8个数据集：<br>OASST1，HH-RLHF ，Alpaca，self-instruct， unnatural instructions，FLAN v2，Chip2, Longform <br> 最后选择OASST1中top reply的9k条数据微调得到Guanaco | ![png](./png/image2023-6-6_11-2-39.png)除13B尺寸上的Vicuna表现更好外，Guanaco表现最优 | [相关代码](https://github.com/artidoro/qlora)                | [相关论文1](https://arxiv.org/abs/2305.14314)                | Train on target优于Train on source and target                |
 | Vicuna-13B         | LLaMA | ChatGPT的92%（GPT4评估）最新模型已更新迭代到V1.3版本    |       | FSDP on 8 A100 GPUs in one day       | 从[ShareGPT](https://sharegpt.com/) 清洗出70K user-shared ChatGPT conversations（ShareGPT目前已关闭开源，仅有用户提前下载的部分数据，[数据清洗代码](https://github.com/lm-sys/FastChat/blob/main/docs/commands/data_cleaning.md)） | ![png](./png/image2023-6-6_13-57-8.png)评估数据集为80条 vicuna test，GPT4进行评估打分 | [相关代码](https://github.com/lm-sys/FastChat)<br>[在线demo](https://chat.lmsys.org/) | [官方博客](https://lmsys.org/blog/2023-03-30-vicuna/)        | 多轮对话只计算模型输出的loss                                 |
 | Alpaca             | LLaMA                                                        | 约ChatGPT的70%      | chat类模型中比较早期的做法     | 在4 A100 80G GPUs in FSDP mode微调7B | Self-instruct from davinci-003 API (52k samples)         |        | [相关代码](https://github.com/tatsu-lab/stanford_alpaca)     | [官方博客](https://crfm.stanford.edu/2023/03/13/alpaca.html) |                                                              |
@@ -50,8 +51,8 @@ SuperCLUE琅琊榜和UC伯克利LLM排行榜包含模型对战排名，即通过
 | Chinese-Alpaca-13B | Chinese-LLaMA（[LoRA权重地址](https://huggingface.co/ziqingyang/chinese-llama-plus-lora-13b)） |                                           | LLaMA在120G中文语料上的二次预训练、扩充中文词表（LoRA）      |     | 基于LoRA：基座模型训练120G通用中文语料Chinese-Alpaca在4.3M中文指令上微调 |      | [相关代码](https://github.com/ymcui/Chinese-LLaMA-Alpaca/tree/main) | [相关论文](https://arxiv.org/abs/2304.08177)                 |                                                              |
 | AquilaChat | 智源Aquila：基于LLaMA框架从零开始训练 |  | 中文语料来自智源多年累积的中文数据集，将开源33B版本 |  | 基座模型训练5800亿tokens |  | [相关代码](https://github.com/FlagAI-Open/FlagAI/tree/master/examples/Aquila)
 | -- | baichuan-7b：基于LLaMA框架从零开始训练 |  | 在MMLU、C-Eval上达到同尺寸模型最优效果 |  |  基座模型训练1.2万亿tokens|   | [相关代码](https://github.com/baichuan-inc/baichuan-7B)
-| Firefly流萤   | bloom   |     | 裁切词表大小（适应中文）  |     |     |    | [相关代码](https://github.com/yangjianxin1/Firefly)          |                                                              |                                                              |
-| WizardLM-7B\13B\30B\65B(coming soon) | LLaMA | 能力接近chatgpt，模型更新迭代到V1.1版本 |     |     | 使用更为复杂的指令训练模型，复杂指令通过LLMs自动生成，生成过程中不断对instruction种子增加问题的广度和深度 |      | [相关代码](https://github.com/nlpxucan/WizardLM)  | [相关论文](https://arxiv.org/abs/2304.12244) |     |
+| Firefly流萤   | bloom   | 国内LLM微调项目 | 裁切词表大小（适应中文）  |     |     |    | [相关代码](https://github.com/yangjianxin1/Firefly)          |                                                              |                                                              |
+| WizardLM | LLaMA | 能力接近chatgpt，模型更新迭代到V1.1版本 | 包含7B、13B、30B和即将推出65B   |     | 使用更为复杂的指令训练模型，复杂指令通过LLMs自动生成，生成过程中不断对instruction种子增加问题的广度和深度 |      | [相关代码](https://github.com/nlpxucan/WizardLM)  | [相关论文](https://arxiv.org/abs/2304.12244) |     |
 | OpenChat | LLaMA | 能力接近chatgpt，模型更新迭代到V2版本 |    |    | v1版使用~6K GPT-4生成数据，V2版使用~80K清洗后的ShareGPT数据微调 |     | [相关代码](https://github.com/imoneoi/openchat) |    |    |
 
 
