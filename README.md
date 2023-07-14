@@ -1,4 +1,18 @@
-[toc]
+- [开源ChatLLM-research](#开源chatllm-research)
+  - [1、调研情况](#1调研情况)
+    - [1.1 模型情况梳理](#11-模型情况梳理)
+    - [1.2 邻域模型情况](#12-邻域模型情况)
+    - [1.3 总结](#13-总结)
+      - [a) 基座模型](#a-基座模型)
+        - [LLaMA](#llama)
+        - [GLM](#glm)
+        - [bloom和bloomz](#bloom和bloomz)
+      - [b) 微调数据和模型效果](#b-微调数据和模型效果)
+  - [2、数据集收集](#2数据集收集)
+    - [2.1 微调数据](#21-微调数据)
+    - [2.2 预训练数据](#22-预训练数据)
+    - [2.3 信息抽取数据集](#23-信息抽取数据集)
+
 
 # 开源ChatLLM-research
 
@@ -17,12 +31,9 @@
 
     + [UC伯克利LLM排行榜](https://chat.lmsys.org/)
 
-    + [AlpacaEval](https://tatsu-lab.github.io/alpaca_eval)
+    + [斯坦福排行榜AlpacaEval](https://tatsu-lab.github.io/alpaca_eval)
 
-以上两个排行榜通过志愿者同时对两个匿名模型聊天，并投票产生（模型两两PK）
-
-+ 斯坦福排行榜AlpacaEval：[AlpaceEval](https://tatsu-lab.github.io/alpaca_eval)
-
+SuperCLUE琅琊榜和UC伯克利LLM排行榜包含模型对战排名，即通过志愿者同时对两个匿名模型聊天，并投票产生（模型两两PK）
 
 ### 1.1 模型情况梳理
 | 模型名称 | 基座模型 | 能力说明 | 优缺点 | 训练预期需要资源 | 微调数据集| 论文中的评估结果 | github | 论文 | 训练中值得关注 |
