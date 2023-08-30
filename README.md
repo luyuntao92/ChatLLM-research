@@ -29,6 +29,8 @@
 
 + 国外：
 
+    + [huggingface LLM排行榜](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard)
+
     + [UC伯克利LLM排行榜](https://chat.lmsys.org/)
 
     + [斯坦福排行榜AlpacaEval](https://tatsu-lab.github.io/alpaca_eval)
@@ -43,7 +45,7 @@ SuperCLUE琅琊榜和UC伯克利LLM排行榜包含模型对战排名，即通过
 | Vicuna-13B         | LLaMA | ChatGPT的92%（GPT4评估）最新模型已更新迭代到V1.3版本    |       | FSDP on 8 A100 GPUs in one day       | 从[ShareGPT](https://sharegpt.com/) 清洗出70K user-shared ChatGPT conversations（ShareGPT目前已关闭开源，仅有用户提前下载的部分数据，[数据清洗代码](https://github.com/lm-sys/FastChat/blob/main/docs/commands/data_cleaning.md)） | ![png](./png/image2023-6-6_13-57-8.png)评估数据集为80条 vicuna test，GPT4进行评估打分 | [相关代码](https://github.com/lm-sys/FastChat)<br>[在线demo](https://chat.lmsys.org/) | [官方博客](https://lmsys.org/blog/2023-03-30-vicuna/)        | 多轮对话只计算模型输出的loss                                 |
 | Alpaca             | LLaMA                                                        | 约ChatGPT的70%      | chat类模型中比较早期的做法     | 在4 A100 80G GPUs in FSDP mode微调7B | Self-instruct from davinci-003 API (52k samples)         |        | [相关代码](https://github.com/tatsu-lab/stanford_alpaca)     | [官方博客](https://crfm.stanford.edu/2023/03/13/alpaca.html) |                                                              |
 | LLaMA_GPT4-7B      | LLaMA    | 好于Alpaca-13B、逊于Vicuna-13B  | 进行中文微调：Alpaca的52k instructions 翻译成中文后用GPT-4生成answer | 16*V100     | 使用GPT-4根据Alpaca的52k instructions 生成新的answer     | ![png](./png/image2023-6-6_16-24-18.png)中文表现![png](./png/image2023-6-6_16-29-11.png) | 同Alpaca代码                                                 | [相关论文1](https://arxiv.org/abs/2304.03277)                |                                                              |
-| Koala | LLaMA |      |      |      | 两类数据：<br>1、ChatGPT Distillation Data:SharGPT中删除非英文的，保留30k条；Human ChatGPT Comparison Corpus（HC3）<br>2、Open Source Data：Open Instruction Generalist（OIG）、Alpaca、HH-RLHF、OpenAI WebGPT、OpenAI summarization | ![png](./png/image2023-6-9_16-55-36.png) | [相关代码](https://github.com/young-geng/EasyLM) <br> [数据处理代码](https://github.com/young-geng/koala_data_pipeline) | [官方博客](https://bair.berkeley.edu/blog/2023/04/03/koala/) | 论文用ChatGPT Distillation Data微调了Koala-Distill，用所有数据微调了Koala-All，结果显示在两个验证数据集上，Koala-Distill结果都好于Koala-All（虽然差距不明显） |
+| Koala | LLaMA |      |      |      | 两类数据：<br>1、ChatGPT Distillation Data:SharGPT中删除非英文的，保留30k条；Human ChatGPT Comparison Corpus（HC3）<br>2、Open Source Data：Open Instruction Generalist（OIG）、Alpaca、HH-RLHF、OpenAI WebGPT、OpenAI summarization | ![png](./png/image2023-6-9_16-55-36.png) | [相关代码](https://github.com/young-geng/EasyLM) <br> [数据处理代码](https://github.com/young-geng/koala_data_pipeline) | [官方博客](https://bair.berkeley.edu/blog/2023/04/03/koala/) | 论文用ChatGPT Distillation Data微调了Koala-Distill，用所有数据微调了Koala-All，结果显示在两个验证数据集上，[Koala-Distill结果都好于Koala-All（虽然差距不明显）](https://bair.berkeley.edu/blog/2023/04/03/koala/) |
 | SelFee             | LLaMA                                                        | SelFee-13B约ChatGPT的103%                 | 自我反馈提升回答效果                                         |                                      | 178k 数据包含自我反馈和修订数据：1、Alpaca 52k（根据instructions让ChatGPT生成feedback数据）<br>2、Math collection 26k<br>3、Code collection 30k<br>4、FLAN collection 16k<br>5、ShareGPT 55k（去除非英语） | ![png](./png/image2023-6-7_10-2-36.png)用80条 vicuna test评估 | 同Alpaca代码 <br> [在线demo](https://kaistai.github.io/SelFee/demo) | [官方博客](https://kaistai.github.io/SelFee/)                | 多种训练数据、自我反馈链的模式                               |
 | BELLE              | bloom、LLaMA                                                 | 约ChatGPT的92%（排除code和math）          | LLaMA基座模型对中文进行二次预训练微调数据集几乎全部为中文    | 8卡A100 80G                          | 200万中文+Alpaca的5万英文（均由ChatGPT产生）BELLE-13B基于LLaMA，训练数据达400万 | ![png](./png/image2023-6-7_10-13-57.png)LLaMA-EXT做了中文词表扩展并在3.5B中文token上二次预训练[测试集下载地址：1k中文评估测试集，可用ChatGPT自动打分](https://github.com/LianjiaTech/BELLE/tree/main/eval) | [相关代码](https://github.com/LianjiaTech/BELLE)             | [相关论文1](https://arxiv.org/abs/2304.07854) <br> [相关论文2](https://arxiv.org/abs/2304.08109) | ![png](./png/image2023-6-6_17-22-39.png)对比不容模型尺寸、全量微调、LoRA、不同微调数据量的效果结论：全量FT>LoRA；微调数据越多越好；模型尺寸越大越好 |
 | ChatGLM-6B         | GLM130B                                                      |                                           | 基座模型在中英（对半）语料上训练                             |                                      | 1T tokens的中英双语训练 | ![png](./png/image2023-6-7_17-11-45.png)参与用户与两个匿名模型同时聊天，并投票哪个更好，排名持续更新中 | [相关代码](https://github.com/THUDM/ChatGLM-6B)              | [GLM-130B相关论文](https://arxiv.org/abs/2210.02414)         |                                                              |
@@ -53,7 +55,7 @@ SuperCLUE琅琊榜和UC伯克利LLM排行榜包含模型对战排名，即通过
 | -- | baichuan-7b：基于LLaMA框架从零开始训练 |  | 在MMLU、C-Eval上达到同尺寸模型最优效果 |  |  基座模型训练1.2万亿tokens|   | [相关代码](https://github.com/baichuan-inc/baichuan-7B)
 | Firefly流萤   | bloom   | 国内LLM微调项目 | 裁切词表大小（适应中文）  |     |     |    | [相关代码](https://github.com/yangjianxin1/Firefly)          |                                                              |                                                              |
 | WizardLM | LLaMA | 能力接近chatgpt，模型更新迭代到V1.1版本 | 包含7B、13B、30B和即将推出65B   |     | 使用更为复杂的指令训练模型，复杂指令通过LLMs自动生成，生成过程中不断对instruction种子增加问题的广度和深度 |      | [相关代码](https://github.com/nlpxucan/WizardLM)  | [相关论文](https://arxiv.org/abs/2304.12244) |     |
-| OpenChat | LLaMA | 能力接近chatgpt，模型更新迭代到V2版本 |    |    | v1版使用~6K GPT-4生成数据，V2版使用~80K清洗后的ShareGPT数据微调 |     | [相关代码](https://github.com/imoneoi/openchat) |    |    |
+| OpenChat | LLaMA | 能力接近chatgpt，模型更新迭代到V2版本 |    |    | v1版使用约6K条GPT-4生成数据，V2版使用约80K清洗后的ShareGPT数据微调 |     | [相关代码](https://github.com/imoneoi/openchat) |    |    |
 
 
 ### 1.2 邻域模型情况
@@ -99,7 +101,9 @@ SuperCLUE琅琊榜和UC伯克利LLM排行榜包含模型对战排名，即通过
 
 **数据质量**
 
-ChatGPT>Vicuna-13B>LLaMA_GPT4>Alpaca。
+| 模型 | Alpaca < | LLaMA_GPT4 < | Vicuna < | SelFee <= | WizardLM | ChatGPT |
+| ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| 微调数据集 | self-instruct from davinci-003(52k) | Alpaca的52K条指令由GPT4生成答案 | ShareGPT（用户提问，ChatGPT生成答案，用户主动分享） | 更多数据集，其中包含ShareGPT和Alpaca 52k，Alpaca同样保留指令，让ChatGPT重新生成基于自我反馈的答案 | ChatGPTGPT生成更为复杂的指令，不断增加指令的广度和深度 | 
 
 其中最大的差异就是微调数据集的质量，Vicuna-13B使用ShareGPT，用户分享的和ChatGPT聊天的数据，Alpaca使用52k ChatGPT self instruct得到的数据，而LLaMA_GPT4使用52k GPT-4 self instruct得到的数据。得出结论，微调数据集中有人参与的由于GPT-4，优于ChatGPT。
 
@@ -147,7 +151,6 @@ COIG | 微调Aquila  | [下载地址](https://huggingface.co/datasets/BAAI/COIG)
 | airoboros-gpt4-1.2 | 微调airoboros | [下载地址](https://huggingface.co/datasets/jondurbin/airoboros-gpt4-1.2) | GPT4经过self-instruct生成的数据
 chinese_chatgpt_corpus  |     | [下载地址](https://huggingface.co/datasets/sunzeyeah/chinese_chatgpt_corpus) | 中文，包含百科、知道、对联等问答数据（数据量5G）
 | Zhihu | 知乎问答数据 | [下载地址](https://huggingface.co/datasets/wangrui6/Zhihu-KOL) | 你懂的
-
 
 ### 2.2 预训练数据
 
