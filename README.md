@@ -105,7 +105,7 @@ SuperCLUE琅琊榜和UC伯克利LLM排行榜包含模型对战排名，即通过
 | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
 | 微调数据集 | self-instruct from davinci-003(52k) | Alpaca的52K条指令由GPT4生成答案 | ShareGPT（用户提问，ChatGPT生成答案，用户主动分享） | 更多数据集，其中包含ShareGPT和Alpaca 52k，Alpaca同样保留指令，让ChatGPT重新生成基于自我反馈的答案 | ChatGPTGPT生成更为复杂的指令，不断增加指令的广度和深度 | 
 
-![Alt text](image.png)
+![Alt text](./png/image.png)
 
 其中最大的差异就是微调数据集的质量，Vicuna-13B使用ShareGPT，用户分享的和ChatGPT聊天的数据，Alpaca使用52k ChatGPT self instruct得到的数据，而LLaMA_GPT4使用52k GPT-4 self instruct得到的数据。得出结论，微调数据集中有人参与的由于GPT-4，优于ChatGPT。
 
